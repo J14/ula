@@ -1,0 +1,298 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+
+
+#define TAM 8
+
+/*--------PROGRAMA QUE SIMULA OPERACOES DE UMA ULA (UNIDADE LOGICA E ARITMETICA)------
+
+Operacoes:
+- porta AND;
+- porta OR;
+- porta SOMA e SUBTRACAO;
+- porta slt;
+- porta NOR;
+
+ Sao recebidas apenas duas entradas em DECIMAL, e entao convetidas para seu res-
+pectivo valor em BINARIO. A saida eh o resultado da operacao em binario escolhida
+pelo usuario.
+
+REGRAS OVERFLOW:
+ADICAO
+Na adicao, ocorre overflow se dados dois operandos, ambos positivos ou ambos negativos,
+produzirem um resultado de sinal oposto
+SUBTRACAO
+Ao subtrair um numero negativo de um positivo o resultado for negativo;
+Ao subtrair um numero positivo de um numero negativo o resultado
+for positivo
+
+AUTORES:
+- Joao Victor Oliveira
+- Karoene da Silva Mendonca
+
+*/
+
+
+/* mostra o vetor no console */
+void mostrarBinario(int vetor[]) {
+	int i;
+	for(i = TAM - 1; i >= 0 ; i--) {
+		printf("%d", vetor[i]);
+	}
+	printf("\n");
+}
+
+
+/* preenche o vetor com zeros */
+void zeradorVetor(int vetor[]) {
+	int i;
+	for(i = 0; i < TAM; i++) {
+		vetor[i] = 0;
+	}
+}
+
+
+/* complemento de 1 */
+void inversorBit(int bin[]) {
+	int i;
+	for(i = 0; i < TAM; i++) {
+		if (bin[i] == 0) {
+			bin[i] = 1;
+		} else {
+			bin[i] = 0;
+		}
+	}
+}
+
+
+/* x elevado a y */
+int potencia(int x, int y) {
+	if (y == 0) return 1;
+
+	else return x * potencia(x, y - 1);
+
+}
+
+
+/* binario para decimal */
+int binTodec (int bin[]){
+	int num = 0;
+	int i = 0, y = 0;
+	while (i < TAM){
+		if (bin[i] == 1){
+			num += potencia(2 , y);
+		}
+		i++;
+		y++;
+	}
+
+	return num;
+}
+
+
+/*
+ * converte um numero inteiro positivo para binario
+ *
+ * unsigned int num -> sem sinal
+ * int num -> com sinal
+ */
+void decimalBinario(int num, int bin[]) {
+	zeradorVetor(bin);
+	int i = 0;
+	while(num > 0) {
+		bin[i++] = num % 2;
+		num /= 2;
+	}
+}
+
+void somador(int bin1[], int bin2[], int out[]) {
+	int carry = 0;
+	int i;
+	for (i = 0; i < TAM; i++) {
+		if (carry == 0) {
+			if (bin1[i] == 0 && bin2[i] == 0) {
+				out[i] = 0;
+				carry = 0;
+			} else if (bin1[i] == 0 && bin2[i] == 1) {
+				out[i] = 1;
+				carry = 0;
+			} else if (bin1[i] == 1 && bin2[i] == 0) {
+				out[i] = 1;
+				carry = 0;
+			} else if (bin1[i] == 1 && bin2[i] == 1) {
+				out[i] = 0;
+				carry = 1;
+			}
+		} else if (carry == 1) {
+			if (bin1[i] == 0 && bin2[i] == 0) {
+				out[i] = 1;
+				carry = 0;
+			} else if (bin1[i] == 0 && bin2[i] == 1) {
+				out[i] = 0;
+				carry = 1;
+			} else if (bin1[i] == 1 && bin2[i] == 0) {
+				out[i] = 0;
+				carry = 1;
+			} else if (bin1[i] == 1 && bin2[i] == 1) {
+				out[i] = 1;
+				carry = 1;
+			}
+		}
+	}
+}
+
+void complementoDe2(int bin[]) {
+	inversorBit(bin);
+	int aux[TAM];
+	zeradorVetor(aux);
+	aux[0] = 1;
+	somador(bin, aux, bin);
+}
+
+
+/*
+ *
+ * a subtracao de dois binarios usando a soma
+ * de dois binarios, que se faz somando o primeiro binario
+ * com o inverso do segundo binario(complemento de 2)
+ *
+ */
+
+void subtrador(int bin1[], int bin2[], int out[]) {
+	complementoDe2(bin2);
+
+	somador(bin1, bin2, out);
+}
+
+/*
+ * conversao de um inteiro negativo para binario
+ *
+ * passamos de negativo para positivo para convertermos em binario
+ * para assim, com o complemento de 2, termos o binario negativo
+ *
+ *
+ * caso especial : o numero -2147483648 nao existe seu correspondente
+ * positivo, montamos o binario "manualmente"
+ */
+
+void decimalNegativoBinario(int num, int bin[]) {
+	if (num > -2147483648) {
+		num = -(num);
+		decimalBinario(num, bin);
+		complementoDe2(bin);
+	} else {
+		zeradorVetor(bin);
+		bin[31] = 1;
+	}
+}
+
+void andOpera(int bin1[], int bin2[], int out[]) {
+	int i;
+	for (i = 0; i < TAM; i++) {
+			if (bin1[i] == 0 || bin2[i] == 0) {
+				out[i] = 0;
+			}
+			 else  {
+				out[i] = 1;
+            }
+	}
+}
+
+void orOpera(int bin1[], int bin2[], int out[]) {
+	int i;
+	for (i = 0; i < TAM; i++) {
+			if (bin1[i] == 1 || bin2[i] == 1) {
+				out[i] = 1;
+			}
+			 else  {
+				out[i] = 0;
+            }
+	}
+}
+
+
+/*
+ * rs - rt < 0 -> rs < rt -> 1
+ * -> 0
+ */
+int stl_opera(int bin1[], int bin2[]) {
+    complementoDe2(bin2);
+    int out[TAM];
+    subtrador(bin1, bin2, out);
+    if (binTodec(out) < 0)
+        return 1;
+    return 0;
+}
+
+
+int main(void) {
+	int bin1[TAM], bin2[TAM], out[TAM];
+	int num1, num2, op;
+	int n;
+	printf("----------- PROGRAMA QUE SIMULA OPERACOES DE UMA ULA -------------\n\n\n\n" );
+	for(; ;){
+	   	printf("Informe o primeiro numero inteiro: ");
+		scanf("%d", &num1);
+		printf("Informe o segundo numero inteiro: ");
+		scanf("%d", &num2);
+		if (num1 < 0){
+		   	decimalNegativoBinario(num1, bin1);
+		} else {
+		   	decimalBinario(num1, bin1);
+		}
+
+		if (num2 < 0){
+		  	    decimalNegativoBinario(num2, bin2);
+		} else{
+		   	   	decimalBinario(num2, bin2);
+		}
+	   	printf("%d = ", num1);
+		mostrarBinario(bin1);
+	   	printf("%d = ", num2);
+		mostrarBinario(bin2);
+
+		printf("\n[0] - AND\n");
+		printf("[1] - OR\n");
+		printf("[2] - SOMA\n");
+		printf("[6] - SUBTRACAO\n\n");
+		printf("digite a operacao desejada: ");
+		scanf("%d" ,&op);
+		switch (op){
+			   	case 0:
+	   				andOpera(bin1, bin2, out);
+	 				printf("\n AND  \n");
+	 			  	mostrarBinario(out);
+
+	 				break;
+				case 1:
+			  	    orOpera(bin1, bin2, out);
+	 				printf("\n OR \n");
+					mostrarBinario(out);
+
+	   	   			break;
+				case 2:
+	  	   			somador(bin1, bin2, out);
+	 				printf("\nResultado da SOMA em BINARIO\n");
+	 			    mostrarBinario(out);
+	 			    printf("Resultado da SOMA em DECIMAL: %d", binTodec(out));
+	 				break;
+				case 6:
+					subtrador(bin1, bin2, out);
+					printf("\nResultado da SUBTRACAO em BINARIO: \n");
+					mostrarBinario(out);
+					printf("\nResultado da SUBTRACAO em DECIMAL: \n%d", binTodec(out));
+					break;
+				default: printf("opcao invalida");
+		}
+	printf("\n\n\nDeseja continuar a execucao do programa? \n Informe [1] pra continuar e qualquer tecla para sair\n");
+	scanf("%d", &n);
+	if (n == 1){
+		printf("\n");
+		continue;
+	}else break;
+
+}
+
+	return 0;
+}
