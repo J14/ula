@@ -33,7 +33,6 @@ AUTORES:
 
 */
 
-
 /* mostra o vetor no console */
 void mostrarBinario(int vetor[]) {
 	int i;
@@ -216,20 +215,39 @@ void orOpera(int bin1[], int bin2[], int out[]) {
  * rs - rt < 0 -> rs < rt -> 1
  * -> 0
  */
-int stl_opera(int bin1[], int bin2[]) {
-    complementoDe2(bin2);
-    int out[TAM];
-    subtrador(bin1, bin2, out);
-    if (binTodec(out) < 0)
-        return 1;
-    return 0;
+void stl_opera(int bin1[], int bin2[], int out[]) {
+	int result[TAM];
+    zeradorVetor(out);
+	zeradorVetor(result);
+    subtrador(bin1, bin2, result);
+    if (result[TAM - 1] == 1)
+        out[0] = 1;
 }
+
+
+void nor_opera(int bin1[], int bin2[], int out[]){
+	zeradorVetor(out);
+	inversorBit(bin1);
+	inversorBit(bin2);
+	andOpera(bin1, bin2, out);
+	
+}
+
+int zero_out(int out[]){
+	int i;
+	for(i = 0; i < TAM; i++){
+		if (out[i] == 1)
+			return 0;	
+	}
+	return 1;
+}
+
 
 
 int main(void) {
 	int bin1[TAM], bin2[TAM], out[TAM];
 	int num1, num2, op;
-	int n;
+	int n, aux;
 	printf("----------- PROGRAMA QUE SIMULA OPERACOES DE UMA ULA -------------\n\n\n\n" );
 	for(; ;){
 	   	printf("Informe o primeiro numero inteiro: ");
@@ -256,6 +274,8 @@ int main(void) {
 		printf("[1] - OR\n");
 		printf("[2] - SOMA\n");
 		printf("[6] - SUBTRACAO\n\n");
+		printf("[24] - SLT\n\n");
+		printf("[25] - NOR\n\n");
 		printf("digite a operacao desejada: ");
 		scanf("%d" ,&op);
 		switch (op){
@@ -283,8 +303,20 @@ int main(void) {
 					mostrarBinario(out);
 					printf("\nResultado da SUBTRACAO em DECIMAL: \n%d", binTodec(out));
 					break;
+				case 24:
+					printf("\nResultado do STL: SE ERROU FOI A KAROENE\n\n");
+					stl_opera(bin1, bin2, out);
+					mostrarBinario(out);
+					break;
+				case 25:
+					printf("\nResultado do NOR: \n\n");
+					nor_opera(bin1, bin2, out);
+					mostrarBinario(out);
+					break;
 				default: printf("opcao invalida");
 		}
+		aux = zero_out(out);
+		printf("\nzero= %d", aux);
 	printf("\n\n\nDeseja continuar a execucao do programa? \n Informe [1] pra continuar e qualquer tecla para sair\n");
 	scanf("%d", &n);
 	if (n == 1){
